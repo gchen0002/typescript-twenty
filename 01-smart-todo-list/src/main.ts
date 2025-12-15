@@ -1,9 +1,15 @@
 import './style.css';
 import type { Task, Priority } from './types';
 
+// lower number = higher priority
+const priorityWeight = {
+  high: 1,
+  medium: 2,
+  low: 3,
+}
 // State
 let tasks: Task[] = JSON.parse(localStorage.getItem('tasks') || '[]');
-let currentFilter: 'all' | 'active' | 'completed' = 'all';
+let currentFilter: 'all' | 'active' | 'completed' | 'timed' | 'untimed' = 'all';
 
 // DOM Elements (declared, assigned after DOM loads)
 let taskInput: HTMLInputElement;
@@ -11,6 +17,7 @@ let prioritySelect: HTMLSelectElement;
 let addBtn: HTMLButtonElement;
 let taskList: HTMLUListElement;
 let filterBtns: NodeListOf<Element>;
+let dueDateInput: HTMLInputElement;
 
 // Wait for DOM to be ready
 document.addEventListener('DOMContentLoaded', () => {
@@ -20,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
   addBtn = document.getElementById('addBtn') as HTMLButtonElement;
   taskList = document.getElementById('taskList') as HTMLUListElement;
   filterBtns = document.querySelectorAll('.filter-btn');
+  dueDateInput = document.getElementById('dueDateInput') as HTMLInputElement;
 
   // Initial Render
   renderTasks();
@@ -48,12 +56,14 @@ function addTask() {
     title,
     completed: false,
     priority: prioritySelect.value as Priority,
+    dueDate: dueDateInput.value || undefined,
   };
 
   tasks.push(newTask);
   saveTasks();
   renderTasks();
   taskInput.value = '';
+  dueDateInput.value = '';
   taskInput.focus();
 }
 
@@ -93,7 +103,19 @@ function renderTasks() {
   const filteredTasks = tasks.filter(task => {
     if (currentFilter === 'active') return !task.completed;
     if (currentFilter === 'completed') return task.completed;
+    if (currentFilter === 'timed') return !!task.dueDate;
+    if (currentFilter === 'untimed') return !task.dueDate;
     return true;
+  });
+
+  filteredTasks.sort((a, b) => {
+    if (a.dueDate && !b.dueDate) return -1;
+    if (!a.dueDate && b.dueDate) return 1;
+
+    if (a.dueDate && b.dueDate) {
+      return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+    }
+    return priorityWeight[a.priority] - priorityWeight[b.priority];
   });
 
   filteredTasks.forEach(task => {
@@ -124,7 +146,11 @@ function renderTasks() {
     deleteBtn.title = 'Delete task';
     deleteBtn.addEventListener('click', () => deleteTask(task.id));
 
-    li.append(checkbox, span, badge, deleteBtn);
+    // Due Date
+    const dueDateSpan = document.createElement('span');
+    dueDateSpan.className = 'due-date';
+    dueDateSpan.textContent = task.dueDate || '';
+    li.append(checkbox, span, badge, deleteBtn, dueDateSpan);
     taskList.appendChild(li);
   });
 }
