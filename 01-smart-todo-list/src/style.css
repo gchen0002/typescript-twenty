@@ -205,3 +205,8 @@ ul {
 .delete-btn:hover {
   color: var(--danger);
 }
+
+.task-item.overdue {
+  border-left: 4px solid #ef4444;
+  background-color: rgba(239, 68, 68, 0.1);
+}
