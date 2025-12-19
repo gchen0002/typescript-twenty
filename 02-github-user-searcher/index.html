@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Google Fonts: Space Mono for code/stats, Inter for text -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
+  <title>DevFinder | GitHub User Search</title>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1 class="logo">devfinder</h1>
+    </header>
+
+    <main>
+      <!-- Search Bar -->
+      <div class="search-container">
+        <svg class="search-icon" width="24" height="24" fill="none" viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg">
+          <path stroke="#0079ff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+        </svg>
+        <input type="text" id="user-input" placeholder="Search GitHub username..." />
+        <div class="error-msg hidden" id="no-results">No results</div>
+        <button id="search-btn">Search</button>
+      </div>
+
+      <!-- User Profile Card -->
+      <div class="profile-container" id="profile-container">
+        <!-- Profile Header -->
+        <div class="profile-header">
+          <img id="avatar" src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+            alt="User Avatar" class="avatar" />
+          <div class="profile-info">
+            <div class="profile-name-section">
+              <h2 id="name">The Octocat</h2>
+              <p id="date">Joined 25 Jan 2011</p>
+            </div>
+            <p id="username" class="login">@octocat</p>
+          </div>
+        </div>
+
+        <!-- Bio -->
+        <p id="bio" class="bio">This profile has no bio</p>
+
+        <!-- Stats -->
+        <div class="stats-card">
+          <div class="stat-group">
+            <h4>Repos</h4>
+            <p id="repos">8</p>
+          </div>
+          <div class="stat-group">
+            <h4>Followers</h4>
+            <p id="followers">3938</p>
+          </div>
+          <div class="stat-group">
+            <h4>Following</h4>
+            <p id="following">9</p>
+          </div>
+        </div>
+
+        <!-- Links -->
+        <div class="links-container">
+          <div class="link-item">
+            <!-- Location Icon -->
+            <svg class="link-icon" class="icon" width="14" height="20" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7 20s7-7.25 7-11.75a7 7 0 10-14 0C0 12.75 7 20 7 20zM3.5 8.25a3.5 3.5 0 117 0 3.5 3.5 0 01-7 0z"
+                fill="#4B6A9B" fill-rule="nonzero" />
+            </svg>
+            <span id="location">San Francisco</span>
+          </div>
+          <div class="link-item">
+            <!-- Website Icon -->
+            <svg class="link-icon" class="icon" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M10 0C4.477 0 0 4.477 0 10s4.477 10 10 10 10-4.477 10-10S15.523 0 10 0zM2.844 14H6.5c.348 2.628 1.458 4.79 2.872 5.67C5.972 19.141 3.253 16.924 2.844 14zm1.905-8H8.5c-.347-2.628-1.457-4.79-2.872-5.67C3.12 1.353 1.343 3.504 1.055 6H4.75zm12.406 8h-3.656c-.347 2.628-1.458 4.79-2.872 5.67 3.398-.529 6.117-2.746 6.528-5.67zm-1.906-8h-3.75c.347-2.628 1.457-4.79 2.872-5.67 2.508 1.023 4.285 3.174 4.573 5.67zM10 1.764c1.17 1.096 2.055 3.107 2.242 5.236H7.758c.187-2.129 1.072-4.14 2.242-5.236zM10 18.236c-1.17-1.096-2.055-3.107-2.242-5.236h4.484c-.187 2.129-1.072 4.14-2.242 5.236zM7.5 12V8h5v4h-5z"
+                fill="#4B6A9B" fill-rule="nonzero" />
+            </svg>
+            <a href="#" id="blog">https://github.blog</a>
+          </div>
+          <div class="link-item">
+            <!-- Twitter Icon -->
+            <svg class="link-icon" class="icon" width="20" height="17" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M20 1.924a8.192 8.192 0 01-2.357.646 4.11 4.11 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.097 4.097 0 00-6.979 3.738C6.49 4.882 3.493 3.264 1.488.805A4.1 4.1 0 002.756 6.28a4.085 4.085 0 01-1.859-.513v.051a4.103 4.103 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 010 14.398a11.616 11.616 0 006.29 1.843c7.548 0 11.675-6.253 11.675-11.675 0-.178-.004-.355-.012-.53A8.348 8.348 0 0020 1.924z"
+                fill="#4B6A9B" fill-rule="nonzero" />
+            </svg>
+            <span id="twitter">Not Available</span>
+          </div>
+          <div class="link-item">
+            <!-- Company Icon -->
+            <svg class="link-icon" class="icon" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M7 20V8h2v12H7zm6 0V8h2v12h-2zM0 20h20v-5.833c0-.92-.746-1.667-1.667-1.667H1.667C.746 12.5 0 13.246 0 14.167V20zM3.333 9.167h13.334C17.587 9.167 18.333 8.42 18.333 7.5S17.587 5.833 16.667 5.833H3.333C2.413 5.833 1.667 6.58 1.667 7.5s.746 1.667 1.666 1.667zM10 0C6.31 0 3.32 3 3.32 3H10l.013.004V0zm6.68 3C16.68 3 13.69 0 10 0v3.012L16.68 3z"
+                fill="#4B6A9B" fill-rule="nonzero" />
+            </svg>
+            <span id="company">@github</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
+</html>
