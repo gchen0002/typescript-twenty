@@ -13,13 +13,14 @@ interface UserData {
   blog: string | null;
   twitter_username: string | null;
   company: string | null;
+  html_url: string;
 }
 
 const searchInput = document.getElementById("user-input") as HTMLInputElement;
 const searchBtn = document.getElementById("search-btn") as HTMLButtonElement;
 const avatar = document.getElementById("avatar") as HTMLImageElement;
 const nameElement = document.getElementById("name") as HTMLElement;
-const usernameElement = document.getElementById("username") as HTMLElement;
+const usernameElement = document.getElementById("username") as HTMLAnchorElement;
 const dateElement = document.getElementById("date") as HTMLElement;
 const bioElement = document.getElementById("bio") as HTMLElement;
 const reposElement = document.getElementById("repos") as HTMLElement;
@@ -29,6 +30,7 @@ const locationElement = document.getElementById("location") as HTMLElement;
 const blogElement = document.getElementById("blog") as HTMLAnchorElement;
 const twitterElement = document.getElementById("twitter") as HTMLElement;
 const companyElement = document.getElementById("company") as HTMLElement;
+const errorElement = document.getElementById("no-results") as HTMLElement;
 
 async function fetchUser(username: string): Promise<UserData | null> {
   const response = await fetch(`https://api.github.com/users/${username}`);
@@ -42,6 +44,7 @@ function updateUI(user: UserData) {
   avatar.src = user.avatar_url;
   nameElement.innerText = user.name || user.login;
   usernameElement.innerText = `@${user.login}`;
+  usernameElement.href = user.html_url;
   dateElement.innerText = new Date(user.created_at).toLocaleDateString();
   bioElement.innerText = user.bio || "No bio provided";
   reposElement.innerText = user.public_repos.toString();
@@ -60,18 +63,25 @@ function updateUI(user: UserData) {
 }
 
 function handleSearch() {
+  searchBtn.disabled = true;
+  searchBtn.innerText = "Loading...";
   const username = searchInput.value.trim();
   if (username) {
     fetchUser(username).then((user) => {
       if (user) {
         updateUI(user);
+        errorElement.classList.add("hidden");
       } else {
-        alert("User not found");
+        errorElement.classList.remove("hidden");
       }
     })
       .catch((error) => {
         console.error("Error fetching user:", error);
-        alert("An error occurred while fetching the user.");
+        errorElement.classList.remove("hidden");
+      })
+      .finally(() => {
+        searchBtn.disabled = false;
+        searchBtn.innerText = "Search";
       });
   }
 }
