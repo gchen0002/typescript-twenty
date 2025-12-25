@@ -1,34 +1,15 @@
-import type { Card } from './types';
-import { EMOJIS } from './constants';
+import type { Card, BestScore } from './types';
+import { EMOJIS, BEST_SCORE_KEY } from './constants';
 import { shuffle } from './utils';
 
+// State variables
 let cards: Card[] = [];
 let flippedCards: Card[] = [];
 let moves: number = 0;
 let pairsFound: number = 0;
 let isLocked: boolean = false;
-
-// Initialize Game
-function initGame() {
-    // Create pairs
-    const emojiPairs = [...EMOJIS, ...EMOJIS];
-    // Shuffle
-    cards = shuffle(emojiPairs).map((emoji, index) => ({
-        id: index.toString(),
-        emoji: emoji,
-        isFlipped: false,
-        isMatched: false,
-    }));
-    // Reset state
-    flippedCards = [];
-    moves = 0;
-    pairsFound = 0;
-    isLocked = false;
-    // Update UI
-    updateStats();
-    renderBoard();
-    hideWinMessage();
-}
+let timerInterval: number | null = null;
+let elapsedSeconds: number = 0;
 
 // UI Elements
 const gameBoard = document.getElementById("game-board") as HTMLDivElement;
@@ -38,10 +19,94 @@ const resetBtn = document.getElementById("reset-btn") as HTMLButtonElement;
 const winMessage = document.getElementById("win-message") as HTMLDivElement;
 const finalMoves = document.getElementById("final-moves") as HTMLSpanElement;
 const playAgainBtn = document.getElementById("play-again-btn") as HTMLButtonElement;
+const timerDisplay = document.getElementById("timer-display") as HTMLSpanElement;
+const bestTimeDisplay = document.getElementById("best-time-display") as HTMLSpanElement;
 
-// Event Listeners
-resetBtn.addEventListener("click", initGame);
-playAgainBtn.addEventListener("click", initGame);
+// Timer functions
+function formatTime(seconds: number): string {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+}
+
+function startTimer(): void {
+    // clear any existing timer first
+    if (timerInterval) {
+        clearInterval(timerInterval);
+    }
+    elapsedSeconds = 0;
+    timerInterval = window.setInterval(() => {
+        elapsedSeconds++;
+        timerDisplay.textContent = formatTime(elapsedSeconds);
+    }, 1000);
+}
+
+function stopTimer(): void {
+    if (timerInterval !== null) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+}
+
+// Best Score functions
+function getBestScore(): BestScore | null {
+    const stored = localStorage.getItem(BEST_SCORE_KEY);
+    if (!stored) return null;
+    return JSON.parse(stored) as BestScore;
+}
+
+function saveBestScore(moves: number, time: string): boolean {
+    const currentBest = getBestScore();
+    if (!currentBest || moves < currentBest.moves) {
+        localStorage.setItem(BEST_SCORE_KEY, JSON.stringify({ moves, time }));
+        return true;
+    }
+    return false;
+}
+
+function displayBestScore(): void {
+    const bestScore = getBestScore();
+    if (bestScore) {
+        bestTimeDisplay.textContent = formatTime(parseInt(bestScore.time));
+    }
+}
+
+// UI Update functions
+function updateStats(): void {
+    movesDisplay.textContent = moves.toString();
+    pairsDisplay.textContent = `${pairsFound} / 8`;
+}
+
+function updateCardElement(card: Card): void {
+    const cardElement = document.querySelector(`[data-card-id="${card.id}"]`) as HTMLDivElement;
+    if (card.isFlipped) {
+        cardElement.classList.add("flipped");
+    } else {
+        cardElement.classList.remove("flipped");
+    }
+}
+
+function markAsMatched(card: Card): void {
+    const cardElement = document.querySelector(`[data-card-id="${card.id}"]`) as HTMLDivElement;
+    cardElement.classList.add("matched");
+}
+
+function showWinMessage(): void {
+    stopTimer();
+    winMessage.classList.remove("hidden");
+    finalMoves.textContent = moves.toString();
+
+    // check and save best score
+    const isNewBest = saveBestScore(moves, elapsedSeconds.toString());
+    if (isNewBest) {
+        // Could show "New Best!" message here if desired
+    }
+    displayBestScore();
+}
+
+function hideWinMessage(): void {
+    winMessage.classList.add("hidden");
+}
 
 // Rendering
 function renderBoard(): void {
@@ -55,12 +120,13 @@ function renderBoard(): void {
             <div class="card-front"></div>
             <div class="card-back">${card.emoji}</div>
         </div>
-        `
+        `;
         cardElement.addEventListener("click", () => handleCardClick(card));
         gameBoard.appendChild(cardElement);
-    })
+    });
 }
 
+// Game Logic
 function handleCardClick(card: Card): void {
     // guard clauses
     if (isLocked) return;
@@ -106,34 +172,39 @@ function checkForMatch(): void {
     flippedCards = [];
 }
 
-// Helper functions
-function updateCardElement(card: Card): void {
-    const cardElement = document.querySelector(`[data-card-id="${card.id}"]`) as HTMLDivElement;
-    if (card.isFlipped) {
-        cardElement.classList.add("flipped");
-    } else {
-        cardElement.classList.remove("flipped");
-    }
+// Initialize Game
+function initGame(): void {
+    // Create pairs
+    const emojiPairs = [...EMOJIS, ...EMOJIS];
+    // Shuffle
+    cards = shuffle(emojiPairs).map((emoji, index) => ({
+        id: index.toString(),
+        emoji: emoji,
+        isFlipped: false,
+        isMatched: false,
+    }));
+    // Reset state
+    flippedCards = [];
+    moves = 0;
+    pairsFound = 0;
+    isLocked = false;
+
+    // Reset timer
+    stopTimer();
+    elapsedSeconds = 0;
+    timerDisplay.textContent = formatTime(elapsedSeconds);
+    startTimer();
+
+    // Update UI
+    updateStats();
+    renderBoard();
+    hideWinMessage();
+    displayBestScore();
 }
 
-function markAsMatched(card: Card): void {
-    const cardElement = document.querySelector(`[data-card-id="${card.id}"]`) as HTMLDivElement;
-    cardElement.classList.add("matched");
-}
-
-function updateStats(): void {
-    movesDisplay.textContent = moves.toString();
-    pairsDisplay.textContent = `${pairsFound} / 8`;
-}
-
-function showWinMessage(): void {
-    winMessage.classList.remove("hidden");
-    finalMoves.textContent = moves.toString();
-}
-
-function hideWinMessage(): void {
-    winMessage.classList.add("hidden");
-}
+// Event Listeners
+resetBtn.addEventListener("click", initGame);
+playAgainBtn.addEventListener("click", initGame);
 
 // Initial Kickoff
 initGame();

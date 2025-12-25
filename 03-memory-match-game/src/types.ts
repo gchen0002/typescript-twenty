@@ -4,3 +4,8 @@ export interface Card {
     isFlipped: boolean;
     isMatched: boolean;
 }
+
+export interface BestScore {
+    moves: number;
+    time: string; // in seconds
+}
