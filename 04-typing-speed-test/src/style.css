@@ -1,0 +1,53 @@
+/* Minimal Typing Speed Test */
+:root { --bg:#1a1a2e; --card:#16213e; --accent:#7c3aed; --text:#e2e8f0; --muted:#64748b; --success:#22c55e; --error:#ef4444; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:2rem; }
+.app { max-width:800px; margin:0 auto; }
+
+/* Header */
+.header { text-align:center; margin-bottom:2rem; }
+.title { font-size:2rem; color:var(--accent); margin-bottom:0.25rem; }
+.subtitle { color:var(--muted); }
+
+/* Stats */
+.stats-bar { display:flex; justify-content:center; gap:2rem; background:var(--card); padding:1rem; border-radius:0.5rem; margin-bottom:1.5rem; }
+.stat { text-align:center; }
+.stat-label { font-size:0.75rem; color:var(--muted); text-transform:uppercase; }
+.stat-value { font-size:1.5rem; font-weight:600; color:var(--accent); font-family:monospace; }
+
+/* Text Display */
+.text-container { background:var(--card); padding:1.5rem; border-radius:0.5rem; margin-bottom:1.5rem; min-height:120px; border-left:3px solid var(--accent); }
+.text-display { font-family:monospace; font-size:1.25rem; line-height:2; }
+
+/* Character States */
+.char { transition:color 0.1s; }
+.char.pending { color:var(--muted); }
+.char.current { color:var(--text); background:rgba(124,58,237,0.3); }
+.char.correct { color:var(--success); }
+.char.incorrect { color:var(--error); text-decoration:underline wavy; }
+
+/* Input */
+.typing-input { width:100%; padding:1rem; font-size:1rem; font-family:monospace; background:var(--card); border:2px solid transparent; border-radius:0.5rem; color:var(--text); outline:none; margin-bottom:1rem; }
+.typing-input:focus { border-color:var(--accent); }
+.typing-input::placeholder { color:var(--muted); }
+
+/* Buttons */
+.controls { display:flex; justify-content:center; gap:1rem; }
+.btn { padding:0.75rem 1.5rem; font-size:1rem; border:none; border-radius:0.5rem; cursor:pointer; font-weight:500; }
+.btn-restart { background:var(--accent); color:white; }
+.btn-new-text { background:transparent; color:var(--text); border:1px solid var(--muted); }
+.btn:hover { opacity:0.9; }
+
+/* Results Modal */
+.results-modal { position:fixed; inset:0; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; }
+.results-modal.hidden { display:none; }
+.results-content { background:var(--card); padding:2rem; border-radius:1rem; text-align:center; min-width:320px; }
+.results-content h2 { color:var(--accent); margin-bottom:1.5rem; }
+.results-stats { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem; }
+.result-item { background:var(--bg); padding:0.75rem; border-radius:0.5rem; }
+.result-label { font-size:0.7rem; color:var(--muted); text-transform:uppercase; }
+.result-value { font-size:1.25rem; font-weight:600; color:var(--accent); }
+.btn-try-again { background:var(--accent); color:white; width:100%; }
+
+/* Mobile */
+@media (max-width:600px) { .stats-bar{flex-wrap:wrap;gap:1rem;} .text-display{font-size:1rem;} }

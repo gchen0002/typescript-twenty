@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Test and improve your typing speed with this interactive typing test" />
+    <title>Typing Speed Test</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/src/style.css" />
+</head>
+
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="title">⌨️ Typing Speed Test</h1>
+            <p class="subtitle">How fast can you type?</p>
+        </header>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat">
+                <span class="stat-label">Time</span>
+                <span class="stat-value" id="timer-display">60</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">WPM</span>
+                <span class="stat-value" id="wpm-display">0</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Accuracy</span>
+                <span class="stat-value" id="accuracy-display">100%</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Errors</span>
+                <span class="stat-value" id="errors-display">0</span>
+            </div>
+        </div>
+
+        <!-- Text Display Area -->
+        <div class="text-container">
+            <div class="text-display" id="text-display">
+                <!-- Text will be rendered by TypeScript with character spans -->
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-container">
+            <input type="text" class="typing-input" id="typing-input" placeholder="Click here and start typing..."
+                autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="controls">
+            <button class="btn btn-restart" id="restart-btn">🔄 Restart</button>
+            <button class="btn btn-new-text" id="new-text-btn">📝 New Text</button>
+        </div>
+
+        <!-- Results Modal -->
+        <div class="results-modal hidden" id="results-modal">
+            <div class="results-content">
+                <h2>🎉 Test Complete!</h2>
+                <div class="results-stats">
+                    <div class="result-item">
+                        <span class="result-label">Words Per Minute</span>
+                        <span class="result-value" id="final-wpm">0</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Accuracy</span>
+                        <span class="result-value" id="final-accuracy">0%</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Characters Typed</span>
+                        <span class="result-value" id="final-chars">0</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Errors</span>
+                        <span class="result-value" id="final-errors">0</span>
+                    </div>
+                </div>
+                <button class="btn btn-try-again" id="try-again-btn">Try Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+</body>
+
+</html>
