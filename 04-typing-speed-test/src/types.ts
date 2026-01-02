@@ -19,4 +19,5 @@ export interface GameStats {
     startTime: number | null;
     text: string;
     timeRemaining: number;
+    typedChars: (string | null)[];
 }
