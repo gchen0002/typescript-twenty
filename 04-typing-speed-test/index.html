@@ -59,6 +59,16 @@
         <div class="controls">
             <button class="btn btn-restart" id="restart-btn">🔄 Restart</button>
             <button class="btn btn-new-text" id="new-text-btn">📝 New Text</button>
+            <button class="btn btn-custom-text" id="custom-text-btn">✍️ Custom Text</button>
+        </div>
+
+        <!-- Options -->
+        <div class="options">
+            <label class="toggle-label">
+                <input type="checkbox" id="sudden-death-toggle" />
+                <span class="toggle-text">💀 Sudden Death</span>
+            </label>
+            <span class="shortcut-hint">Press <kbd>Tab</kbd> + <kbd>Enter</kbd> to restart</span>
         </div>
 
         <!-- Results Modal -->
@@ -84,6 +94,18 @@
                     </div>
                 </div>
                 <button class="btn btn-try-again" id="try-again-btn">Try Again</button>
+            </div>
+        </div>
+
+        <!-- Custom Text Modal -->
+        <div class="custom-text-modal hidden" id="custom-text-modal">
+            <div class="custom-text-content">
+                <h2>✍️ Enter Custom Text</h2>
+                <textarea id="custom-text-area" placeholder="Paste or type your own text here..."></textarea>
+                <div class="custom-text-buttons">
+                    <button class="btn btn-use-custom" id="use-custom-text-btn">Use This Text</button>
+                    <button class="btn btn-cancel-custom" id="cancel-custom-text-btn">Cancel</button>
+                </div>
             </div>
         </div>
     </div>

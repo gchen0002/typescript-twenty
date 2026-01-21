@@ -1,145 +1,38 @@
 import "./style.css";
-import { CONFIG, SAMPLE_TEXTS } from "./constants";
-import type { GameStats, GameStatus, TypingStats, CharacterStatus } from "./types";
+import { CONFIG } from "./constants";
+import { fetchRandomQuote } from "./utils";
+import { GameState } from "./GameState";
+import { Timer } from "./Timer";
+import { calculateStats } from "./StatsCalculator";
+import { UIController } from "./UIController";
 
-const textDisplay = document.getElementById("text-display")!;
-const typingInput = document.getElementById("typing-input") as HTMLInputElement;
+// Initialize components
+const ui = new UIController();
+let gameState: GameState;
+let timer: Timer;
+
+// DOM elements for new features
 const restartBtn = document.getElementById("restart-btn") as HTMLButtonElement;
 const newTextBtn = document.getElementById("new-text-btn") as HTMLButtonElement;
-const resultsModal = document.getElementById("results-modal") as HTMLDivElement;
-const timerDisplay = document.getElementById("timer-display") as HTMLSpanElement;
-const wpmDisplay = document.getElementById("wpm-display") as HTMLSpanElement;
-const accuracyDisplay = document.getElementById("accuracy-display") as HTMLSpanElement;
-const errorsDisplay = document.getElementById("errors-display") as HTMLSpanElement;
-const finalWpm = document.getElementById("final-wpm") as HTMLSpanElement;
-const finalAccuracy = document.getElementById("final-accuracy") as HTMLSpanElement;
-const finalChars = document.getElementById("final-chars") as HTMLSpanElement;
-const finalErrors = document.getElementById("final-errors") as HTMLSpanElement;
 const tryAgainBtn = document.getElementById("try-again-btn") as HTMLButtonElement;
-
-// helper functions
-function getRandomText() {
-    return SAMPLE_TEXTS[Math.floor(Math.random() * SAMPLE_TEXTS.length)];
-}
-
-async function fetchRandomQuote(): Promise<string> {
-    try {
-        const response = await fetch(
-            'https://motivational-spark-api.vercel.app/api/quotes/random'
-        );
-        if (!response.ok) throw new Error('API failed');
-        const data = await response.json();
-        // Returns {author: "...", quote: "..."}
-        return data.quote;
-    } catch {
-        // Fallback to hardcoded texts
-        return getRandomText();
-    }
-}
-
-function createInitialState(text: string): GameStats {
-    return {
-        status: "idle",
-        currentIndex: 0,
-        startTime: null,
-        timeRemaining: CONFIG.INITIAL_TIME,
-        text,
-        stats: {
-            wpm: 0,
-            accuracy: 100,
-            correctChars: 0,
-            incorrectChars: 0,
-            totalChars: 0,
-            errors: 0,
-            time: 0
-        },
-        typedChars: new Array(text.length).fill(null)
-    }
-}
-
-// initialize the game state
-let gameState = createInitialState(getRandomText());
-let timerInterval: number | null = null;
-
-function renderText() {
-    const text = gameState.text;
-    const currentIndex = gameState.currentIndex;
-    const textDisplay = document.getElementById("text-display")!;
-    textDisplay.innerHTML = "";
-    let textFragment = "";
-    for (let i = 0; i < text.length; i++) {
-        const char = text[i];
-        const typedChar = gameState.typedChars[i];
-        
-        let charStatus: CharacterStatus = "pending";
-        if (i === currentIndex) {
-            charStatus = "current";
-        } else if (typedChar !== null) {
-            charStatus = typedChar === char ? "correct" : "incorrect";
-        }
-        
-        textFragment += `<span class="char ${charStatus}">${char}</span>`;
-    }
-    textDisplay.innerHTML = textFragment;
-}
-
-function updateStats(): void {
-    const stats = gameState.stats;
-    wpmDisplay.textContent = stats.wpm.toFixed(2);
-    accuracyDisplay.textContent = stats.accuracy.toFixed(2) + "%";
-    errorsDisplay.textContent = stats.errors.toString();
-    
-    // Update results modal stats
-    finalWpm.textContent = stats.wpm.toFixed(0);
-    finalAccuracy.textContent = stats.accuracy.toFixed(1) + "%";
-    finalErrors.textContent = stats.errors.toString();
-    finalChars.textContent = stats.totalChars.toString();
-}
-
-function startTimer(): void {
-    timerInterval = setInterval(() => {
-        gameState.timeRemaining--;
-        timerDisplay.textContent = gameState.timeRemaining.toString();
-        if (gameState.timeRemaining === 0) {
-            clearInterval(timerInterval!);
-            endGame();
-        }
-    }, 1000);
-}
+const suddenDeathToggle = document.getElementById("sudden-death-toggle") as HTMLInputElement;
+const customTextBtn = document.getElementById("custom-text-btn") as HTMLButtonElement;
+const customTextModal = document.getElementById("custom-text-modal") as HTMLDivElement;
+const customTextArea = document.getElementById("custom-text-area") as HTMLTextAreaElement;
+const useCustomTextBtn = document.getElementById("use-custom-text-btn") as HTMLButtonElement;
+const cancelCustomTextBtn = document.getElementById("cancel-custom-text-btn") as HTMLButtonElement;
 
 function endGame(): void {
     gameState.status = "finished";
-    clearInterval(timerInterval!);
-    updateStats();
-    resultsModal.classList.remove("hidden");
+    timer.stop();
+    gameState.stats = calculateStats(gameState.typedChars, gameState.text, timer.getRemaining());
+    ui.updateStats(gameState.stats);
+    ui.showResults();
 }
 
-function recalculateStats(): void {
-    let correct = 0;
-    let errors = 0;
-    let totalTyped = 0;
-    
-    gameState.typedChars.forEach((typed, i) => {
-        if (typed !== null) {
-            totalTyped++;
-            if (typed === gameState.text[i]) {
-                correct++;
-            } else {
-                errors++;
-            }
-        }
-    });
-
-    gameState.stats.correctChars = correct;
-    gameState.stats.errors = errors;
-    gameState.stats.totalChars = totalTyped;
-
-    const elapsedSeconds = CONFIG.INITIAL_TIME - gameState.timeRemaining;
-    const elapsedMinutes = elapsedSeconds / 60 || 1 / 60;
-    
-    // WPM: (correct characters / 5) / elapsed minutes
-    gameState.stats.wpm = (correct / CONFIG.WPM_DIVISOR) / elapsedMinutes;
-    gameState.stats.accuracy = totalTyped > 0 ? (correct / totalTyped) * 100 : 100;
+function updateGameStats(): void {
+    gameState.stats = calculateStats(gameState.typedChars, gameState.text, timer.getRemaining());
+    ui.updateStats(gameState.stats);
 }
 
 function handleInput(event: Event): void {
@@ -153,77 +46,151 @@ function handleInput(event: Event): void {
     if (gameState.status === "idle") {
         gameState.status = "running";
         gameState.startTime = Date.now();
-        startTimer();
+        timer.start();
     }
 
     const char = value[value.length - 1];
-    if (gameState.currentIndex < gameState.text.length) {
-        gameState.typedChars[gameState.currentIndex] = char;
-        gameState.currentIndex++;
+    const isCorrect = gameState.typeChar(char);
+
+    // Sudden Death: end game on first mistake
+    if (gameState.suddenDeath && !isCorrect) {
+        input.value = "";
+        updateGameStats();
+        ui.renderText(gameState);
+        endGame();
+        return;
     }
 
     input.value = "";
-    recalculateStats();
-    updateStats();
-    renderText();
+    updateGameStats();
+    ui.renderText(gameState);
 
-    if (gameState.currentIndex >= gameState.text.length) {
+    if (gameState.isComplete()) {
         endGame();
     }
 }
 
 function handleKeyDown(event: KeyboardEvent): void {
+    // Tab + Enter to restart
+    if (event.key === "Tab") {
+        event.preventDefault();
+    }
+    if (event.key === "Enter" && event.getModifierState("Tab") === false) {
+        // Check if Tab was recently pressed
+    }
+
     if (gameState.status !== "running") return;
 
     if (event.key === "Backspace") {
-        if (gameState.currentIndex > 0) {
-            gameState.currentIndex--;
-            gameState.typedChars[gameState.currentIndex] = null;
-            recalculateStats();
-            updateStats();
-            renderText();
-        }
+        gameState.backspace();
+        updateGameStats();
+        ui.renderText(gameState);
     }
 }
 
-async function restartGame(): Promise<void> {
-    if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
+// Global shortcut: Tab + Enter to restart
+let tabPressed = false;
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Tab") {
+        e.preventDefault();
+        tabPressed = true;
     }
-    textDisplay.innerHTML = '<span class="char pending">Loading...</span>';
+    if (e.key === "Enter" && tabPressed) {
+        e.preventDefault();
+        restartGame();
+    }
+});
+document.addEventListener("keyup", (e) => {
+    if (e.key === "Tab") {
+        tabPressed = false;
+    }
+});
+
+async function restartGame(): Promise<void> {
+    timer.stop();
+    ui.showLoading();
     const quote = await fetchRandomQuote();
-    gameState = createInitialState(quote);
-    timerDisplay.textContent = gameState.timeRemaining.toString();
-    renderText();
-    updateStats();
-    resultsModal.classList.add("hidden");
+    initGame(quote);
 }
 
 async function newTextGame(): Promise<void> {
-    if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-    }
-    textDisplay.innerHTML = '<span class="char pending">Loading...</span>';
+    timer.stop();
+    ui.showLoading();
     const quote = await fetchRandomQuote();
-    gameState = createInitialState(quote);
-    timerDisplay.textContent = gameState.timeRemaining.toString();
-    renderText();
-    updateStats();
-    resultsModal.classList.add("hidden");
+    initGame(quote);
 }
 
-typingInput.addEventListener('input', handleInput);
-typingInput.addEventListener('keydown', handleKeyDown);
-restartBtn.addEventListener('click', restartGame);
-newTextBtn.addEventListener('click', newTextGame);
-tryAgainBtn.addEventListener('click', restartGame);
+function initGame(text: string): void {
+    gameState = new GameState(text);
+    
+    // Sync sudden death toggle
+    if (suddenDeathToggle) {
+        gameState.suddenDeath = suddenDeathToggle.checked;
+    }
 
-// Initial render with API quote
+    timer = new Timer(
+        CONFIG.INITIAL_TIME,
+        (remaining) => ui.updateTimer(remaining),
+        () => endGame()
+    );
+
+    ui.updateTimer(CONFIG.INITIAL_TIME);
+    ui.renderText(gameState);
+    ui.updateStats(gameState.stats);
+    ui.hideResults();
+    ui.clearInput();
+}
+
+// Custom text modal handlers
+function openCustomTextModal(): void {
+    if (customTextModal) {
+        customTextModal.classList.remove("hidden");
+        customTextArea.value = "";
+        customTextArea.focus();
+    }
+}
+
+function closeCustomTextModal(): void {
+    if (customTextModal) {
+        customTextModal.classList.add("hidden");
+    }
+}
+
+function useCustomText(): void {
+    const text = customTextArea.value.trim();
+    if (text.length > 0) {
+        timer.stop();
+        initGame(text);
+        closeCustomTextModal();
+    }
+}
+
+// Event listeners
+ui.typingInput.addEventListener("input", handleInput);
+ui.typingInput.addEventListener("keydown", handleKeyDown);
+restartBtn.addEventListener("click", restartGame);
+newTextBtn.addEventListener("click", newTextGame);
+tryAgainBtn.addEventListener("click", restartGame);
+
+if (suddenDeathToggle) {
+    suddenDeathToggle.addEventListener("change", () => {
+        gameState.suddenDeath = suddenDeathToggle.checked;
+    });
+}
+
+if (customTextBtn) {
+    customTextBtn.addEventListener("click", openCustomTextModal);
+}
+if (useCustomTextBtn) {
+    useCustomTextBtn.addEventListener("click", useCustomText);
+}
+if (cancelCustomTextBtn) {
+    cancelCustomTextBtn.addEventListener("click", closeCustomTextModal);
+}
+
+// Initial load
 (async () => {
-    textDisplay.innerHTML = '<span class="char pending">Loading...</span>';
+    ui.showLoading();
     const quote = await fetchRandomQuote();
-    gameState = createInitialState(quote);
-    renderText();
+    initGame(quote);
 })();
