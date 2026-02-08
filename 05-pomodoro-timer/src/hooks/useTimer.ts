@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { TimerMode, TimerState } from '../types';
 import { getDurationForMode, CONFIG } from '../types';
-
+import { playNotification } from '../utils/playNotification';
 export interface UseTimerReturn {
     state: TimerState;
     start: () => void;
@@ -67,7 +67,9 @@ export const useTimer = (): UseTimerReturn => {
             }
         });
     }, []);
-
+    useEffect(() => {
+        Notification.requestPermission();
+    }, []);
     useEffect(() => {
         let interval: number | null = null;
 
@@ -76,6 +78,7 @@ export const useTimer = (): UseTimerReturn => {
                 setState(prev => ({ ...prev, timeLeft: prev.timeLeft - 1 }));
             }, 1000);
         } else if (state.timeLeft === 0 && state.isActive) {
+            playNotification();
             skip();
         }
 

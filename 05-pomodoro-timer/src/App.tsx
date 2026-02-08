@@ -13,6 +13,23 @@ function App() {
     
     const [tasks, setTasks] = useState<Task[]>([]);
     const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+    const [isInitialized, setIsInitialized] = useState(false);
+
+    // Load tasks from localStorage FIRST (on mount)
+    useEffect(() => {
+        const savedTasks = localStorage.getItem('tasks');
+        if (savedTasks) {
+            setTasks(JSON.parse(savedTasks));
+        }
+        setIsInitialized(true);
+    }, []);
+
+    // Save tasks to localStorage only AFTER initial load is complete
+    useEffect(() => {
+        if (isInitialized) {
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+    }, [tasks, isInitialized]);
 
     useEffect(() => {
         if (state.mode !== 'work' && state.completedSessions > 0 && activeTaskId) {
@@ -23,7 +40,16 @@ function App() {
             ));
         }
     }, [state.mode, state.completedSessions, activeTaskId]);
-
+    useEffect(() => {
+        const handleKeyPress = (e: KeyboardEvent) => {
+            if(e.code === 'Space') {
+                e.preventDefault();
+                state.isActive ? pause() : start();
+            }
+        };
+        window.addEventListener('keydown', handleKeyPress);
+        return () => window.removeEventListener('keydown', handleKeyPress);
+    }, [state.isActive, start, pause]);
     const handleAddTask = useCallback((title: string) => {
         const newTask: Task = {
             id: Date.now().toString(),
