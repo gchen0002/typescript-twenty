@@ -1,4 +1,4 @@
-# 20 TypeScript Projects Challenge
+# 20 TypeScript Projects :D
 
 Learning TypeScript by building 20 distinct projects.
 
